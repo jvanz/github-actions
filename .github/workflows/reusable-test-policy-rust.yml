@@ -30,9 +30,8 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
-        with:
-          command: check
+      - name: Run cargo check
+        run: cargo check
   test:
     name: Test Suite
     runs-on: ubuntu-latest
@@ -43,9 +42,8 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
-        with:
-          command: test
+      - name: Run cargo test
+        run: cargo test
   e2e-tests:
     name: E2E testSuite
     runs-on: ubuntu-latest
@@ -71,10 +69,8 @@ jobs:
           toolchain: stable
           override: true
       - run: rustup component add rustfmt
-      - uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
-        with:
-          command: fmt
-          args: --all -- --check
+      - name: Run Cargo fmt
+        run: cargo fmt  --all -- --check
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
@@ -86,7 +82,5 @@ jobs:
           toolchain: stable
           override: true
       - run: rustup component add clippy
-      - uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # v1.0.3
-        with:
-          command: clippy
-          args: -- -D warnings
+      - name: Run cargo clippy
+        run: cargo clippy -- -D warnings
