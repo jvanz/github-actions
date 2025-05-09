@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - uses: bytecodealliance/actions/wasmtime/setup@d742827944dcb656569399571a8a45261b5089f6 #v1.1.0
-      - uses: swiftwasm/setup-swiftwasm@44f4367dbda85a1394b6d346d3f699a7c766b064 #v2.1
+      # - uses: bytecodealliance/actions/wasmtime/setup@d742827944dcb656569399571a8a45261b5089f6 #v1.1.0
+      # - uses: swiftwasm/setup-swiftwasm@44f4367dbda85a1394b6d346d3f699a7c766b064 #v2.1
       - name: Run tests
-        run: carton test
+        run: docker run --rm -v $PWD:/code --entrypoint /bin/bash ghcr.io/kubewarden/swift-wasm-runner:5.3-p1 -c "cd /code && carton test"
