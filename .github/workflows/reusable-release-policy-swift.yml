@@ -54,7 +54,7 @@ jobs:
           export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
           sudo apt-get -q update
           sudo apt-get -q install -y wabt binaryen
-          sudo apt-get -q install -y build-essential libc++-18-dev
+          sudo apt-get -q install -y build-essential libc++-18-dev libicu-dev
 
       - uses: bytecodealliance/actions/wasmtime/setup@d742827944dcb656569399571a8a45261b5089f6 #v1.1.0
       - uses: swiftwasm/setup-swiftwasm@44f4367dbda85a1394b6d346d3f699a7c766b064 #v2.1
