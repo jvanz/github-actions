@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
+      - uses: bytecodealliance/actions/wasmtime/setup@d742827944dcb656569399571a8a45261b5089f6 #v1.1.0
+      - uses: swiftwasm/setup-swiftwasm@44f4367dbda85a1394b6d346d3f699a7c766b064 #v2.1
       - name: Run tests
-        uses: swiftwasm/swiftwasm-action@5f4ac6cd6d2273f0c6aba57d7281736428f0aeb7 # v5.9
-        with:
-          shell-action: carton test
+        run: carton test
