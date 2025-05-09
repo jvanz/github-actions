@@ -54,10 +54,12 @@ jobs:
           export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
           sudo apt-get -q update
           sudo apt-get -q install -y wabt binaryen
+
+      - uses: bytecodealliance/actions/wasmtime/setup@d742827944dcb656569399571a8a45261b5089f6 #v1.1.0
+      - uses: swiftwasm/setup-swiftwasm@44f4367dbda85a1394b6d346d3f699a7c766b064 #v2.1
       - name: Build release
-        uses: swiftwasm/swiftwasm-action@5f4ac6cd6d2273f0c6aba57d7281736428f0aeb7 # v5.9
-        with:
-          shell-action: swift build -c release --triple wasm32-unknown-wasi --build-path build
+        run: swift build -c release --triple wasm32-unknown-wasi --build-path build
+
       - name: optimize policy
         run: |
           # need to fix file permissions because of some issue with Swift Foundation and filesystem
