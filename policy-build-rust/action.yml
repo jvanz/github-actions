@@ -10,7 +10,7 @@ inputs:
     # Boolean input should be compared with string
     # until https://github.com/actions/runner/issues/2238 resolved
     default: "true"
-  policy-working-dir:
+  working-dir:
     description: "working directory of the policy. Useful for repos with policies in folders"
     required: false
     default: .
