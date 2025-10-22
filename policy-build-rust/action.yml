@@ -10,7 +10,7 @@ inputs:
     # Boolean input should be compared with string
     # until https://github.com/actions/runner/issues/2238 resolved
     default: "true"
-  working-dir:
+  working-directory:
     description: "working directory of the policy. Useful for repos with policies in folders"
     required: false
     default: .
@@ -26,22 +26,22 @@ runs:
         rustup override set stable
     - name: Build Wasm module
       shell: bash
-      working-directory: ${{ inputs.policy-working-dir }}
+      working-directory: ${{ inputs.working-directory }}
       run: cargo build --target=wasm32-wasip1 --release
     - name: Rename Wasm module
       shell: bash
-      working-directory: ${{ inputs.policy-working-dir }}
+      working-directory: ${{ inputs.working-directory }}
       run: |
         cp target/wasm32-wasip1/release/*.wasm policy.wasm
     - name: Annotate Wasm module
       shell: bash
-      working-directory: ${{ inputs.policy-working-dir }}
+      working-directory: ${{ inputs.working-directory }}
       run: |
         make annotated-policy.wasm
     - name: Generate the SBOM files
       if: ${{ inputs.generate-sbom == 'true' }}
       shell: bash
-      working-directory: ${{ inputs.policy-working-dir }}
+      working-directory: ${{ inputs.working-directory }}
       run: |
         # SBOM files should have "sbom" in the name due the CLO monitor
         # https://clomonitor.io/docs/topics/checks/#software-bill-of-materials-sbom
@@ -53,7 +53,7 @@ runs:
     - name: Sign BOM file
       if: ${{ inputs.generate-sbom == 'true' }}
       shell: bash
-      working-directory: ${{ inputs.policy-working-dir }}
+      working-directory: ${{ inputs.working-directory }}
       run: |
         cosign sign-blob --yes --output-certificate policy-sbom.spdx.cert \
           --output-signature policy-sbom.spdx.sig \
@@ -64,6 +64,6 @@ runs:
       with:
         name: policy-sbom
         path: |
-          ${{ inputs.policy-working-dir }}/policy-sbom.spdx.json
-          ${{ inputs.policy-working-dir }}/policy-sbom.spdx.cert
-          ${{ inputs.policy-working-dir }}/policy-sbom.spdx.sig
+          ${{ inputs.working-directory }}/policy-sbom.spdx.json
+          ${{ inputs.working-directory }}/policy-sbom.spdx.cert
+          ${{ inputs.working-directory }}/policy-sbom.spdx.sig
