@@ -66,7 +66,8 @@ jobs:
       - name: Build and annotate policy
         with:
           generate-sbom: false
-        uses: kubewarden/github-actions/policy-build-rust@v4.5.12
+          working-directory: ${{ inputs.policy-working-dir }}
+        uses: jvanz/github-actions/policy-build-rust@monorepo
       - name: Run e2e tests
         working-directory: ${{ inputs.policy-working-dir }}
         run: |
