@@ -2,7 +2,18 @@ name: Tests and linters
 
 on:
   workflow_call:
+    inputs:
+      policy-working-dir:
+        description: "working directory of the policy. Useful for repos with policies in folders"
+        required: false
+        type: string
+        default: .
     secrets: {}
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ${{ inputs.policy-working-dir }}
 
 jobs:
   version-check:
@@ -29,10 +40,8 @@ jobs:
         run: |
           rustup toolchain install stable  --profile minimal --target wasm32-wasip1
           rustup override set stable
-        shell: bash
       - name: Run Cargo check
-        run: cargo check --workspace
-        shell: bash
+        run: cargo check
 
   test:
     name: Test Suite
@@ -43,10 +52,8 @@ jobs:
         run: |
           rustup toolchain install stable  --profile minimal --target wasm32-wasip1
           rustup override set stable
-        shell: bash
       - name: Run Cargo test
-        run: cargo test --workspace
-        shell: bash
+        run: cargo test
   e2e-tests:
     name: E2E testSuite
     runs-on: ubuntu-latest
@@ -70,10 +77,8 @@ jobs:
         run: |
           rustup toolchain install stable  --profile minimal --target wasm32-wasip1 --component rustfmt
           rustup override set stable
-        shell: bash
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
-        shell: bash
 
   clippy:
     name: Clippy
@@ -85,4 +90,4 @@ jobs:
           rustup toolchain install stable  --profile minimal --target wasm32-wasip1 --component clippy
           rustup override set stable
       - name: Run Cargo clippy
-        run: cargo clippy --workspace -- -D warnings
+        run: cargo clippy -- -D warnings
