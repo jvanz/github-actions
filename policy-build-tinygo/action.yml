@@ -14,6 +14,10 @@ inputs:
     # Boolean input should be compared with string
     # until https://github.com/actions/runner/issues/2238 resolved
     default: "true"
+  policy-working-dir:
+    description: "working directory of the policy. Useful for repos with policies in folders"
+    required: false
+    default: .
 runs:
   using: "composite"
   steps:
@@ -33,11 +37,13 @@ runs:
         sudo dpkg -i tinygo_${{ inputs.tinygo-version }}_amd64.deb
     - name: Build Wasm module
       shell: bash
+      working-directory: ${{ inputs.policy-working-dir }}
       run: |
         tinygo build -o policy.wasm -target=wasi -no-debug .
     - name: Generate the SBOM files
       if: ${{ inputs.generate-sbom == 'true' }}
       shell: bash
+      working-directory: ${{ inputs.policy-working-dir }}
       run: |
         # SBOM files should have "sbom" in the name due the CLO monitor
         # https://clomonitor.io/docs/topics/checks/#software-bill-of-materials-sbom
@@ -47,10 +53,12 @@ runs:
           -vv dir:.
     - name: Annotate Wasm module
       shell: bash
+      working-directory: ${{ inputs.policy-working-dir }}
       run: |
         make annotated-policy.wasm
     - name: Sign BOM file
       if: ${{ inputs.generate-sbom == 'true' }}
+      working-directory: ${{ inputs.policy-working-dir }}
       shell: bash
       run: |
         cosign sign-blob --yes --output-certificate policy-sbom.spdx.cert \
@@ -62,6 +70,6 @@ runs:
       with:
         name: policy-sbom
         path: |
-          policy-sbom.spdx.json
-          policy-sbom.spdx.cert
-          policy-sbom.spdx.sig
+          ${{ inputs.policy-working-dir }}/policy-sbom.spdx.json
+          ${{ inputs.policy-working-dir }}/policy-sbom.spdx.cert
+          ${{ inputs.policy-working-dir }}/policy-sbom.spdx.sig
