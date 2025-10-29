@@ -8,6 +8,14 @@ on:
         required: false
         type: string
         default: .
+      policy-version:
+        description: |
+          Release version of the policy, without 'v' prefix. Optional.
+          Defaults to extracting the version from tag if tag present.
+          E.g: tag "v0.1.0", policy-version=0.1.0
+        required: false
+        type: string
+        default: ""
     secrets: {}
 
 defaults:
@@ -27,10 +35,9 @@ jobs:
         run: |
           CARGO_VERSION=$(sed  -n 's,^version = \"\(.*\)\",\1,p' Cargo.toml)
           TAG_VERSION=$(echo ${{ github.ref_name }} | sed 's/v//')
-          # If there is a working dir, let's assume that this is a repo with
-          # multiple policies. Therefore, the tag follow the format pod-name/vX.X.X
-          if [ "${{ inputs.policy-working-dir }}" != "." ]; then
-            TAG_VERSION=$( echo ${{ github.ref_name }} | sed 's/\(.*\)\/\(.*\)$/\2/' | sed 's/v//')
+          if [ "${{ inputs.policy-version }}" != "" ]; then
+            # TAG_VERSION=$( echo ${{ github.ref_name }} | sed 's/\(.*\)\/\(.*\)$/\2/' | sed 's/v//')
+            TAG_VERSION=$(echo ${{ inputs.policy-version }} )
           fi
           if [ "$CARGO_VERSION" != "$TAG_VERSION" ];then
               echo "::error title=Invalid Cargo.toml version::Cargo.toml version does not match the tag version"
