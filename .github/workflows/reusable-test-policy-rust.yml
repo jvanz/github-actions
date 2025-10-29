@@ -36,7 +36,6 @@ jobs:
           CARGO_VERSION=$(sed  -n 's,^version = \"\(.*\)\",\1,p' Cargo.toml)
           TAG_VERSION=$(echo ${{ github.ref_name }} | sed 's/v//')
           if [ "${{ inputs.policy-version }}" != "" ]; then
-            # TAG_VERSION=$( echo ${{ github.ref_name }} | sed 's/\(.*\)\/\(.*\)$/\2/' | sed 's/v//')
             TAG_VERSION=$(echo ${{ inputs.policy-version }} )
           fi
           if [ "$CARGO_VERSION" != "$TAG_VERSION" ];then
