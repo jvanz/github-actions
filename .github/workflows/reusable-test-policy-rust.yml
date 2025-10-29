@@ -30,7 +30,7 @@ jobs:
           # If there is a working dir, let's assume that this is a repo with
           # multiple policies. Therefore, the tag follow the format pod-name/vX.X.X
           if [ "${{ inputs.policy-working-dir }}" != "." ]; then
-            TAG_VERSION=$( echo ${{ github.ref_name }} | sed 's/\(.*\)\/\(.*\)$/\1/' | sed 's/v//')
+            TAG_VERSION=$( echo ${{ github.ref_name }} | sed 's/\(.*\)\/\(.*\)$/\2/' | sed 's/v//')
           fi
           if [ "$CARGO_VERSION" != "$TAG_VERSION" ];then
               echo "::error title=Invalid Cargo.toml version::Cargo.toml version does not match the tag version"
