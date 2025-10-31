@@ -77,8 +77,9 @@ runs:
           ${{ inputs.policy-working-dir }}/policy.wasm
 
     - name: Export release ID
-      if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir != '.' }}
       # if we are on a monorepo, export the release ID just created
+      if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir != '.' }}
+      shell: bash
       run: |
         echo "RELEASE_ID=${{ steps.create-release.outputs.id }}" >> $GITHUB_OUTPUT
 
