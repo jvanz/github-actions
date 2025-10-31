@@ -70,6 +70,6 @@ runs:
       with:
         name: policy-sbom
         path: |
-          ${{ inputs.working-dir }}/policy-sbom.spdx.json
-          ${{ inputs.working-dir }}/policy-sbom.spdx.cert
-          ${{ inputs.working-dir }}/policy-sbom.spdx.sig
+          ${{ inputs.working-directory }}/policy-sbom.spdx.json
+          ${{ inputs.working-directory }}/policy-sbom.spdx.cert
+          ${{ inputs.working-directory }}/policy-sbom.spdx.sig
