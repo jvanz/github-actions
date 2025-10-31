@@ -34,6 +34,7 @@ jobs:
         shell: bash
         run: |
           POLICY_DIR="${{ inputs.policy-working-dir }}"
+          POLICY_NAME=""
           FILES=("metadata.yml" "metadata.yaml")
           VERSION=""
           for F in "${FILES[@]}"; do
@@ -44,12 +45,18 @@ jobs:
                 exit 1
               fi
               FILE="$POLICY_DIR/$F"
+              # policy dir can have multiple directories. Assume the last one
+              # to be the policy-name
+              POLICY_NAME="$(basename $POLICY_DIR)"
             fi
             if [ -f "$FILE" ]; then
-              VERSION=$(yq e '.annotations."io.kubewarden.policy.version"' "$FILE")
+              VERSION="v$(yq e '.annotations."io.kubewarden.policy.version"' $FILE)"
               if [ -z "$VERSION" ]; then
                 echo "annotation 'io.kubewarden.policy.version' is missing in $FILE"
                 exit 1
+              fi
+              if  [ -n "$POLICY_NAME" ]; then
+                VERSION="$POLICY_NAME/$VERSION"
               fi
               echo "found version $VERSION"
               echo "VERSION=$VERSION" >> $GITHUB_ENV
@@ -65,30 +72,14 @@ jobs:
           git config user.email "cncf-kubewarden-maintainers@lists.cncf.io"
 
       - name: Create and push tag
-        if: ${{ inputs.policy-working-dir  == '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git tag -a "v$VERSION" -m "Release version $VERSION"
-          git push origin "v$VERSION"
+          git tag -a "$VERSION" -m "Release version $VERSION"
+          git push origin "$VERSION"
 
       - name: Trigger release workflow
-        if: ${{ inputs.policy-working-dir  == '' }}
-        run: gh workflow run release.yml --ref "v$VERSION"
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-      - name: Create and push tag in a monorepo
-        if: ${{ inputs.policy-working-dir  != '' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git tag -a "${{inputs.policy-working-dir}}/v$VERSION" -m "Release version ${{inputs.policy-working-dir}}/v$VERSION"
-          git push origin "${{inputs.policy-working-dir}}/v$VERSION"
-
-      - name: Trigger release workflow in a monorepo
-        if: ${{ inputs.policy-working-dir  != '' }}
-        run: gh workflow run release.yml --ref "${{inputs.policy-working-dir}}/v$VERSION"
+        run: gh workflow run release.yml --ref "$VERSION"
         env:
           GH_TOKEN: ${{ github.token }}
 
