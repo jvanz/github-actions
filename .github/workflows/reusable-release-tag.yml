@@ -65,7 +65,7 @@ jobs:
           git config user.email "cncf-kubewarden-maintainers@lists.cncf.io"
 
       - name: Create and push tag
-        if: ${{ inputs.policy-working-dir }} == ""
+        if: ${{ inputs.policy-working-dir  == "" }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -73,21 +73,21 @@ jobs:
           git push origin "v$VERSION"
 
       - name: Trigger release workflow
-        if: ${{ inputs.policy-working-dir }} == ""
+        if: ${{ inputs.policy-working-dir  == "" }}
         run: gh workflow run release.yml --ref "v$VERSION"
         env:
           GH_TOKEN: ${{ github.token }}
 
-      - name: Create and push tag
-        if: ${{ inputs.policy-working-dir }} != ""
+      - name: Create and push tag in a monorepo
+        if: ${{ inputs.policy-working-dir  != "" }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git tag -a "${{inputs.policy-working-dir}}/v$VERSION" -m "Release version ${{inputs.policy-working-dir}}/v$VERSION"
           git push origin "${{inputs.policy-working-dir}}/v$VERSION"
 
-      - name: Trigger release workflow
-        if: ${{ inputs.policy-working-dir }} != ""
+      - name: Trigger release workflow in a monorepo
+        if: ${{ inputs.policy-working-dir  != "" }}
         run: gh workflow run release.yml --ref "${{inputs.policy-working-dir}}/v$VERSION"
         env:
           GH_TOKEN: ${{ github.token }}
