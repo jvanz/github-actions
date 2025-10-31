@@ -60,9 +60,11 @@ runs:
 
         echo Keyless signing of policy using cosign
         cosign sign --yes ${IMMUTABLE_REF}
+
     - name: Create release
-      if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir != '.' }}
+      id: create-release
       # if we are on a monorepo, we create a GH release directly and don't reuse a draft release
+      if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir != '.' }}
       uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # v2.4.1
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
@@ -73,6 +75,14 @@ runs:
         prerelease: ${{ contains(inputs.policy-version, '-alpha') || contains(inputs.policy-version, '-beta') || contains(inputs.policy-version, '-rc') }}
         files: |
           ${{ inputs.policy-working-dir }}/policy.wasm
+
+    - name: Export release ID
+      if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir != '.' }}
+      # if we are on a monorepo, export the release ID just created
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+      with:
+        script: |
+          echo "RELEASE_ID=${{ steps.create-release.outputs.id }}" >> $GITHUB_OUTPUT
 
     - name: Get release ID from the release created by release drafter
       if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir == '.' }}
