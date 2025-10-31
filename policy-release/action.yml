@@ -81,7 +81,7 @@ runs:
       if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir != '.' }}
       shell: bash
       run: |
-        echo "RELEASE_ID=${{ steps.create-release.outputs.id }}" >> $GITHUB_OUTPUT
+        echo "RELEASE_ID=${{ steps.create-release.outputs.id }}" >> $GITHUB_ENV
 
     - name: Get release ID from the release created by release drafter
       if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir == '.' }}
