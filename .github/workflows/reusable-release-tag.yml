@@ -9,7 +9,7 @@ on:
         description: "Tag and trigger release manually"
         required: false
         default: true
-      policy-dir:
+      policy-working-dir:
         description: "working directory under policies folder"
         required: false
         type: string
@@ -33,7 +33,7 @@ jobs:
         id: extract-version
         shell: bash
         run: |
-          POLICY_DIR="${{ inputs.policy-dir }}"
+          POLICY_DIR="${{ inputs.policy-working-dir }}"
           FILES=("metadata.yml" "metadata.yaml")
           VERSION=""
           for F in "${FILES[@]}"; do
@@ -65,7 +65,7 @@ jobs:
           git config user.email "cncf-kubewarden-maintainers@lists.cncf.io"
 
       - name: Create and push tag
-        if: ${{ inputs.policy-dir }} == ""
+        if: ${{ inputs.policy-working-dir }} == ""
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -73,22 +73,22 @@ jobs:
           git push origin "v$VERSION"
 
       - name: Trigger release workflow
-        if: ${{ inputs.policy-dir }} == ""
+        if: ${{ inputs.policy-working-dir }} == ""
         run: gh workflow run release.yml --ref "v$VERSION"
         env:
           GH_TOKEN: ${{ github.token }}
 
       - name: Create and push tag
-        if: ${{ inputs.policy-dir }} != ""
+        if: ${{ inputs.policy-working-dir }} != ""
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git tag -a "${{inputs.policy-dir}}/v$VERSION" -m "Release version ${{inputs.policy-dir}}/v$VERSION"
-          git push origin "${{inputs.policy-dir}}/v$VERSION"
+          git tag -a "${{inputs.policy-working-dir}}/v$VERSION" -m "Release version ${{inputs.policy-working-dir}}/v$VERSION"
+          git push origin "${{inputs.policy-working-dir}}/v$VERSION"
 
       - name: Trigger release workflow
-        if: ${{ inputs.policy-dir }} != ""
-        run: gh workflow run release.yml --ref "${{inputs.policy-dir}}/v$VERSION"
+        if: ${{ inputs.policy-working-dir }} != ""
+        run: gh workflow run release.yml --ref "${{inputs.policy-working-dir}}/v$VERSION"
         env:
           GH_TOKEN: ${{ github.token }}
 
