@@ -123,7 +123,7 @@ runs:
             });
           }
     - name: Upload SPDX assets
-      if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir == '.' && inputs.expect-sbom == 'true' }}
+      if: ${{ ! startsWith(github.ref, 'refs/heads/') && inputs.expect-sbom == 'true' }}
       # this step is done since some languages (like Rego) don't have library dependencies or the
       # sbom generator doesn't support them.
 
