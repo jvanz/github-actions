@@ -63,10 +63,11 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
       - name: Check that `io.kubewarden.policy.version` annotation is up-to-date
         # skip when releasing :latest from main, versions will not match
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/')
         uses: kubewarden/github-actions/check-policy-version@v4.5.12
         with:
           expected-version: ${{ steps.calculate-version.outputs.version }}
+          policy-working-dir: ${{ inputs.policy-working-dir }}
       - name: Build and annotate policy
         uses: jvanz/github-actions/policy-build-rust@monorepo
         with:
@@ -84,7 +85,7 @@ jobs:
           policy-working-dir: ${{ inputs.policy-working-dir }}
   push-artifacthub:
     # skip when releasing :latest from main, versions will not match
-    if: startsWith(github.ref, 'refs/tags/v') && inputs.artifacthub
+    if: startsWith(github.ref, 'refs/tags/') && inputs.artifacthub
     needs: release
     permissions:
       # Give the default GITHUB_TOKEN write permission to commit and push the
