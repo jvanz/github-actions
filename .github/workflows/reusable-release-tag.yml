@@ -9,6 +9,11 @@ on:
         description: "Tag and trigger release manually"
         required: false
         default: true
+      policy-dir:
+        description: "working directory under policies folder"
+        required: false
+        type: string
+        default: ""
 
 jobs:
   tag-and-release:
@@ -26,25 +31,33 @@ jobs:
 
       - name: Extract version from metadata.yml
         id: extract-version
+        shell: bash
         run: |
-          if [ -f metadata.yml ]; then
-            VERSION=$(yq e '.annotations."io.kubewarden.policy.version"' metadata.yml)
-            if [ -z "$VERSION" ]; then
-              echo "annotation 'io.kubewarden.policy.version' is missing in metadata.yml"
-              exit 1
+          POLICY_DIR="${{ inputs.policy-dir }}"
+          FILES=("metadata.yml" "metadata.yaml")
+          VERSION=""
+          for F in "${FILES[@]}"; do
+            FILE="$F"
+            if [ -n "$POLICY_DIR" ]; then
+              if [ -f "$POLICY_DIR" ]; then
+                echo "The policy directory does not exists: $POLICY_DIR"
+                exit 1
+              fi
+              FILE="$POLICY_DIR/$F"
             fi
-          elif [ -f metadata.yaml ]; then
-            VERSION=$(yq e '.annotations."io.kubewarden.policy.version"' metadata.yaml)
-            if [ -z "$VERSION" ]; then
-              echo "annotation 'io.kubewarden.policy.version' is missing in metadata.yaml"
-              exit 1
+            if [ -f "$FILE" ]; then
+              VERSION=$(yq e '.annotations."io.kubewarden.policy.version"' "$FILE")
+              if [ -z "$VERSION" ]; then
+                echo "annotation 'io.kubewarden.policy.version' is missing in $FILE"
+                exit 1
+              fi
+              echo "found version $VERSION"
+              echo "VERSION=$VERSION" >> $GITHUB_ENV
+              exit 0
             fi
-          else
-            echo "Error: metadata.yml or metadata.yaml not found" >&2
-            exit 1
-          fi
-          echo "found version $VERSION"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          done
+          echo "Error: metadata.yml or metadata.yaml not found" >&2
+          exit 1
 
       - name: Configure Git author
         run: |
@@ -52,6 +65,7 @@ jobs:
           git config user.email "cncf-kubewarden-maintainers@lists.cncf.io"
 
       - name: Create and push tag
+        if: ${{ inputs.policy-dir }} == ""
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -59,7 +73,22 @@ jobs:
           git push origin "v$VERSION"
 
       - name: Trigger release workflow
+        if: ${{ inputs.policy-dir }} == ""
         run: gh workflow run release.yml --ref "v$VERSION"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Create and push tag
+        if: ${{ inputs.policy-dir }} != ""
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git tag -a "${{inputs.policy-dir}}/v$VERSION" -m "Release version ${{inputs.policy-dir}}/v$VERSION"
+          git push origin "${{inputs.policy-dir}}/v$VERSION"
+
+      - name: Trigger release workflow
+        if: ${{ inputs.policy-dir }} != ""
+        run: gh workflow run release.yml --ref "${{inputs.policy-dir}}/v$VERSION"
         env:
           GH_TOKEN: ${{ github.token }}
 
