@@ -2,7 +2,25 @@ name: Tests and linters
 
 on:
   workflow_call:
+    inputs:
+      policy-working-dir:
+        description: "working directory of the policy. Useful for repos with policies in folders"
+        required: false
+        type: string
+        default: .
+      policy-version:
+        description: |
+          Release version of the policy, without 'v' prefix. Optional.
+          Defaults to extracting the version from tag if tag present.
+          E.g: tag "v0.1.0", policy-version=0.1.0
+        required: false
+        type: string
+        default: ""
     secrets: {}
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   version-check:
@@ -13,9 +31,13 @@ jobs:
       - name: Download source code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Check cargo file version
+        working-directory: ${{ inputs.policy-working-dir }}
         run: |
           CARGO_VERSION=$(sed  -n 's,^version = \"\(.*\)\",\1,p' Cargo.toml)
           TAG_VERSION=$(echo ${{ github.ref_name }} | sed 's/v//')
+          if [ "${{ inputs.policy-version }}" != "" ]; then
+            TAG_VERSION=$(echo ${{ inputs.policy-version }} )
+          fi
           if [ "$CARGO_VERSION" != "$TAG_VERSION" ];then
               echo "::error title=Invalid Cargo.toml version::Cargo.toml version does not match the tag version"
               exit 1
@@ -29,10 +51,9 @@ jobs:
         run: |
           rustup toolchain install stable  --profile minimal --target wasm32-wasip1
           rustup override set stable
-        shell: bash
       - name: Run Cargo check
-        run: cargo check --workspace
-        shell: bash
+        working-directory: ${{ inputs.policy-working-dir }}
+        run: cargo check
 
   test:
     name: Test Suite
@@ -43,10 +64,9 @@ jobs:
         run: |
           rustup toolchain install stable  --profile minimal --target wasm32-wasip1
           rustup override set stable
-        shell: bash
       - name: Run Cargo test
-        run: cargo test --workspace
-        shell: bash
+        working-directory: ${{ inputs.policy-working-dir }}
+        run: cargo test
   e2e-tests:
     name: E2E testSuite
     runs-on: ubuntu-latest
@@ -57,8 +77,10 @@ jobs:
       - name: Build and annotate policy
         with:
           generate-sbom: false
-        uses: kubewarden/github-actions/policy-build-rust@v4.5.12
+          working-directory: ${{ inputs.policy-working-dir }}
+        uses: jvanz/github-actions/policy-build-rust@monorepo
       - name: Run e2e tests
+        working-directory: ${{ inputs.policy-working-dir }}
         run: |
           make e2e-tests
   fmt:
@@ -70,10 +92,9 @@ jobs:
         run: |
           rustup toolchain install stable  --profile minimal --target wasm32-wasip1 --component rustfmt
           rustup override set stable
-        shell: bash
       - name: Run cargo fmt
+        working-directory: ${{ inputs.policy-working-dir }}
         run: cargo fmt --all -- --check
-        shell: bash
 
   clippy:
     name: Clippy
@@ -85,4 +106,5 @@ jobs:
           rustup toolchain install stable  --profile minimal --target wasm32-wasip1 --component clippy
           rustup override set stable
       - name: Run Cargo clippy
-        run: cargo clippy --workspace -- -D warnings
+        working-directory: ${{ inputs.policy-working-dir }}
+        run: cargo clippy -- -D warnings
