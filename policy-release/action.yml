@@ -60,9 +60,11 @@ runs:
 
         echo Keyless signing of policy using cosign
         cosign sign --yes ${IMMUTABLE_REF}
+
     - name: Create release
-      if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir != '.' }}
+      id: create-release
       # if we are on a monorepo, we create a GH release directly and don't reuse a draft release
+      if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir != '.' }}
       uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # v2.4.1
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
@@ -73,6 +75,13 @@ runs:
         prerelease: ${{ contains(inputs.policy-version, '-alpha') || contains(inputs.policy-version, '-beta') || contains(inputs.policy-version, '-rc') }}
         files: |
           ${{ inputs.policy-working-dir }}/policy.wasm
+
+    - name: Export release ID
+      # if we are on a monorepo, export the release ID just created
+      if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir != '.' }}
+      shell: bash
+      run: |
+        echo "RELEASE_ID=${{ steps.create-release.outputs.id }}" >> $GITHUB_ENV
 
     - name: Get release ID from the release created by release drafter
       if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir == '.' }}
@@ -123,7 +132,7 @@ runs:
             });
           }
     - name: Upload SPDX assets
-      if: ${{ ! startsWith(github.ref, 'refs/heads/')  && inputs.policy-working-dir == '.' && inputs.expect-sbom == 'true' }}
+      if: ${{ ! startsWith(github.ref, 'refs/heads/') && inputs.expect-sbom == 'true' }}
       # this step is done since some languages (like Rego) don't have library dependencies or the
       # sbom generator doesn't support them.
 
